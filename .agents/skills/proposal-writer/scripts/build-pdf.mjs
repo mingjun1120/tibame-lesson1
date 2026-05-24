@@ -31,6 +31,19 @@ const SECTION = {
   SYLLABUS: '課程大綱',
 };
 
+// 區塊副標：渲染在 h2 漸層橫條右側，幫助客戶一眼讀懂該區塊用途
+const SECTION_HINT = {
+  [SECTION.INTRO]: '課程定位與痛點解方',
+  [SECTION.TOOLS]: '課程中實際操作的工具',
+  [SECTION.OUTCOME]: '上完課能帶走的具體能力',
+  [SECTION.AUDIENCE]: '這門課為誰量身設計',
+  [SECTION.TOC]: '整體課程結構一覽',
+  [SECTION.SYLLABUS]: '章節細節與教學重點',
+};
+
+const TRUTHY = /^(true|yes|1|on)$/i;
+const isTruthy = (v) => v === true || (typeof v === 'string' && TRUTHY.test(v.trim()));
+
 // 品牌 icon（內嵌 SVG，fill 跟隨連結文字色）。key 為小寫的連結標籤。
 const BRAND_ICONS = {
   medium: '<svg class="link-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M13.54 12a6.8 6.8 0 0 1-6.77 6.82A6.8 6.8 0 0 1 0 12a6.8 6.8 0 0 1 6.77-6.82A6.8 6.8 0 0 1 13.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/></svg>',
@@ -227,7 +240,12 @@ function renderMarkdown(md) {
         }
         if (!hasContent) continue;
         h2Count++;
-        out.push(`<h2><span class="h2-num">${h2Count}</span>${renderInline(text)}</h2>`);
+        const hint = SECTION_HINT[text];
+        const hintHtml = hint ? `<span class="h2-hint">${esc(hint)}</span>` : '';
+        out.push(
+          `<h2><span class="h2-num">${h2Count}</span>` +
+          `<span class="h2-text">${renderInline(text)}</span>${hintHtml}</h2>`
+        );
       } else if (level === 3) {
         closeChapter();
         out.push(`<section class="chapter"><h3>${renderInline(text)}</h3>`);
@@ -318,7 +336,56 @@ function renderMarkdown(md) {
 
 // ─── HTML 組裝 ───
 
-function buildHtml(meta, bodyHtml, cfg, client, themeCss) {
+// 從 README body 抽出「課程簡介」段落前兩個句號作為封面副述（約 80–140 字）
+function extractTagline(body) {
+  if (!body) return '';
+  const m = body.match(/##\s+課程簡介\s*\n([\s\S]*?)(?=\n##\s|$)/);
+  if (!m) return '';
+  const text = m[1]
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*\n]+)\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text) return '';
+  const sentences = text.split('。').map((s) => s.trim()).filter(Boolean);
+  if (!sentences.length) return text.slice(0, 120);
+  const picked = sentences.slice(0, 2).join('。') + '。';
+  return picked.length > 160 ? sentences[0] + '。' : picked;
+}
+
+function renderCover(meta, cfg, client, body) {
+  const ins = cfg.instructor || {};
+  const courseTitle = esc(meta.course_title || '');
+  const tagline = extractTagline(body);
+  const items = [
+    meta.duration ? { label: '課程時數', value: meta.duration } : null,
+    meta.date ? { label: '提案日期', value: meta.date } : null,
+    ins.name ? { label: '講師', value: ins.name } : null,
+  ].filter(Boolean);
+  const metaCells = items.map((it) =>
+    `<div class="cover-meta-cell">` +
+    `<div class="cover-meta-label">${esc(it.label)}</div>` +
+    `<div class="cover-meta-value">${esc(it.value)}</div>` +
+    `</div>`
+  ).join('');
+  return `
+  <section class="cover-page">
+    <div class="cover">
+      <div class="cover-kicker">企業內訓提案</div>
+      <div class="cover-main">
+        <h1 class="cover-client">${esc(client)}</h1>
+        ${courseTitle ? `<div class="cover-line"></div><h2 class="cover-course">${courseTitle}</h2>` : ''}
+        ${tagline ? `<p class="cover-tagline">${esc(tagline)}</p>` : ''}
+      </div>
+      ${metaCells ? `<div class="cover-meta-row">${metaCells}</div>` : ''}
+    </div>
+  </section>`;
+}
+
+function buildHtml(meta, body, bodyHtml, cfg, client, themeCss, useCover) {
   const accent = (cfg.brand && cfg.brand.accent) || '#2563EB';
   const ins = cfg.instructor;
   const title = esc(meta.course_title || client);
@@ -349,6 +416,20 @@ function buildHtml(meta, bodyHtml, cfg, client, themeCss) {
   </section>`;
   }
 
+  const coverHtml = useCover ? renderCover(meta, cfg, client, body) : '';
+  const docHeadHtml = useCover ? '' : `
+  <header class="doc-head">
+    <div class="kicker">課程提案</div>
+    <div class="doc-title">${title}</div>
+    ${metaLine ? `<div class="doc-meta">${metaLine}</div>` : ''}
+  </header>`;
+
+  // 兩種模式共用 puppeteer 標準 margin（16/18/16/16）以確保內頁邊距穩定；
+  // 封面靠負 margin 撐到頁面物理邊緣，底部 18mm 是 footer 區（顯示頁碼）。
+  const inner = useCover
+    ? `${coverHtml}<main>${bodyHtml}</main>${instructorHtml}`
+    : `${docHeadHtml}<main>${bodyHtml}</main>${instructorHtml}`;
+
   return `<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -359,13 +440,7 @@ function buildHtml(meta, bodyHtml, cfg, client, themeCss) {
 ${themeCss}
 </style>
 </head>
-<body>
-  <header class="doc-head">
-    <div class="kicker">課程提案</div>
-    <div class="doc-title">${title}</div>
-    ${metaLine ? `<div class="doc-meta">${metaLine}</div>` : ''}
-  </header>
-  <main>${bodyHtml}</main>${instructorHtml}
+<body class="${useCover ? 'has-cover' : 'no-cover'}">${inner}
 </body>
 </html>`;
 }
@@ -377,10 +452,16 @@ function printUsage() {
 Proposal PDF Builder
 
 用法：
-  node .agents/skills/proposal-writer/scripts/build-pdf.mjs <proposal-dir>
+  node .agents/skills/proposal-writer/scripts/build-pdf.mjs <proposal-dir> [--cover|--no-cover]
+
+旗標：
+  --cover      強制啟用封面頁（覆寫 frontmatter）
+  --no-cover   強制關閉封面頁（覆寫 frontmatter）
+  （不指定時依 frontmatter cover 欄位，預設不啟用）
 
 範例：
   node .agents/skills/proposal-writer/scripts/build-pdf.mjs proposal/todo/睿華國際
+  node .agents/skills/proposal-writer/scripts/build-pdf.mjs proposal/todo/睿華國際 --cover
 
 讀取 <proposal-dir>/README.md 與祖目錄的 config.yaml，
 套用 references/theme.css，輸出 <proposal-dir>/<客戶名稱>-提案.pdf
@@ -388,11 +469,17 @@ Proposal PDF Builder
 }
 
 async function main() {
-  const arg = process.argv[2];
-  if (!arg || arg === '--help' || arg === '-h') {
+  const argv = process.argv.slice(2);
+  const positional = argv.filter((a) => !a.startsWith('--'));
+  const flags = new Set(argv.filter((a) => a.startsWith('--')));
+  const arg = positional[0];
+  if (!arg || flags.has('--help') || flags.has('-h')) {
     printUsage();
     process.exit(arg ? 0 : 1);
   }
+  const coverFlag = flags.has('--cover') ? true
+    : flags.has('--no-cover') ? false
+    : null;
 
   const proposalDir = resolve(arg);
   const readmePath = join(proposalDir, 'README.md');
@@ -413,8 +500,9 @@ async function main() {
     console.warn('⚠ 找不到 config.yaml，將略過「關於講師」區塊');
   }
 
+  const useCover = coverFlag !== null ? coverFlag : isTruthy(meta.cover);
   const themeCss = readFileSync(THEME_CSS, 'utf-8');
-  const html = buildHtml(meta, renderMarkdown(body), cfg, client, themeCss);
+  const html = buildHtml(meta, body, renderMarkdown(body), cfg, client, themeCss, useCover);
 
   // 用舊版 headless（chrome-headless-shell）：新版 headless 的 page.pdf()
   // 對嵌入的 CJK 字型子集有渲染問題，會導致內文文字空白。
@@ -423,20 +511,36 @@ async function main() {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'load' });
     const outPath = join(proposalDir, `${client}-提案.pdf`);
-    await page.pdf({
-      path: outPath,
-      format: 'A4',
-      printBackground: true,
-      displayHeaderFooter: true,
-      headerTemplate: '<span></span>',
-      footerTemplate:
-        `<div style="width:100%;font-size:8px;color:#9ca3af;` +
-        `padding:0 16mm;display:flex;justify-content:space-between;">` +
-        `<span>${esc(cfg.footer || '')}</span>` +
-        `<span><span class="pageNumber"></span> / <span class="totalPages"></span></span>` +
-        `</div>`,
-      margin: { top: '16mm', bottom: '18mm', left: '16mm', right: '16mm' },
-    });
+    const footerTpl =
+      `<div style="width:100%;font-size:8px;color:#9ca3af;` +
+      `padding:0 16mm;display:flex;justify-content:space-between;">` +
+      `<span>${esc(cfg.footer || '')}</span>` +
+      `<span><span class="pageNumber"></span> / <span class="totalPages"></span></span>` +
+      `</div>`;
+    // useCover 時不傳 puppeteer margin，讓 theme.css 的 @page 規則接手：
+    //   @page :first  → margin: 0     （封面真正滿版到 A4 物理四邊）
+    //   @page         → margin: 16mm…  （內頁；分頁時每頁頂部都有邊距）
+    // 這比 puppeteer margin: 0 + main padding-top 更正確，因為 main padding
+    // 只在第一個內頁的頂部生效，後續分頁的新頁頂部會緊貼物理邊緣。
+    // 同時 useCover 時關閉 footer 渲染（避免覆蓋封面），內頁因此也沒有頁碼。
+    const pdfOpts = useCover
+      ? {
+          path: outPath,
+          format: 'A4',
+          printBackground: true,
+          displayHeaderFooter: false,
+          preferCSSPageSize: true,
+        }
+      : {
+          path: outPath,
+          format: 'A4',
+          printBackground: true,
+          displayHeaderFooter: true,
+          headerTemplate: '<span></span>',
+          footerTemplate: footerTpl,
+          margin: { top: '16mm', bottom: '18mm', left: '16mm', right: '16mm' },
+        };
+    await page.pdf(pdfOpts);
     console.log(`✓ 已產生 PDF：${outPath}`);
   } finally {
     await browser.close();

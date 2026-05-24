@@ -60,7 +60,7 @@ code {
 .doc-title { font-size: 25px; font-weight: 800; color: var(--ink-strong); letter-spacing: .3px; }
 .doc-meta { margin-top: 9px; font-size: 13.5px; font-weight: 700; color: #6b7280; }
 
-/* ── 區塊標題 h2（漸層長條）──────────────────── */
+/* ── 區塊標題 h2（漸層長條 + 區塊副標）──────────── */
 h2 {
   display: flex; align-items: center;
   margin: 26px 0 13px;
@@ -78,6 +78,18 @@ h2 strong { color: #fff; background: none; }
   width: 22px; height: 22px; margin-right: 11px; flex: none;
   background: #fff; color: var(--accent);
   font-size: 12px; font-weight: 800; border-radius: 50%;
+}
+.h2-text { flex: 0 0 auto; }
+.h2-hint {
+  margin-left: auto; padding-left: 14px;
+  font-size: 11px; font-weight: 500; letter-spacing: 1.2px;
+  color: rgba(255, 255, 255, 0.82);
+  position: relative;
+}
+.h2-hint::before {
+  content: ""; position: absolute; left: 0; top: 50%;
+  width: 1px; height: 11px; margin-top: -5.5px;
+  background: rgba(255, 255, 255, 0.45);
 }
 
 /* ── 課程簡介 lead ────────────────────────────── */
@@ -144,12 +156,23 @@ ol.toc-list li::before {
 }
 
 /* ── 課程大綱：章節（整章不跨頁）──────────────── */
-.chapter { break-inside: avoid; margin: 15px 0; }
+/* counter 機制：main 初始化 chapter；session-band 用 counter-set（而非 reset）
+   把計數歸零，多場次課程下每場的 ### 章節都會從 1. 開始，與課程目錄一致。
+   注意：counter-reset 在兄弟元素上會建立新 counter instance（不影響原 scope），
+   必須改用 counter-set 才能正確重置「現有」counter。 */
+main { counter-reset: chapter; }
+.session-band { counter-set: chapter 0; }
+.chapter { break-inside: avoid; margin: 15px 0; counter-increment: chapter; }
 .chapter h3 {
   font-size: 13.5px; font-weight: 800; color: var(--ink-strong);
   margin: 0 0 7px; padding: 2px 0 2px 11px;
   border-left: 3px solid var(--accent);
   break-after: avoid;
+}
+.chapter h3::before {
+  content: counter(chapter) ". ";
+  color: var(--accent);
+  margin-right: 2px;
 }
 .chapter ul { margin: 6px 0 6px 34px; }
 .chapter ul ul { margin: 3px 0 3px 22px; }
@@ -190,3 +213,120 @@ blockquote {
 .ins-links { margin-top: 10px; font-size: 12px; color: #9ca3af; }
 .ins-links a { border-bottom: 0; display: inline-flex; align-items: center; gap: 4px; }
 .link-icon { width: 11px; height: 11px; flex: none; }
+
+/* ── 封面頁（cover: true 啟用）──────────────────
+   設計原則：滿版 × 資訊清楚 × 不靠對比裝飾。
+   - 滿版：absolute + 負 margin 撐到 A4 物理四邊。
+   - 資訊清楚：所有文字 ≥ 14px、白色透明度 ≥ 0.85、不靠
+     字級懸殊製造層級，靠留白與位置區分。
+   - 不做裝飾：不放背景圖形、不在 kicker 兩側加短線、
+     不用半透明小字「彰顯氣質」。
+   ============================================ */
+body.has-cover .doc-head { display: none; }
+/* useCover 時用 CSS @page 規則控制每頁 margin：
+   - 第 1 頁（封面）margin = 0，撐滿 A4 物理尺寸 210mm × 297mm。
+   - 其餘頁（內頁）margin = 16/16/18/16mm，分頁時新頁頂部自動有上邊距，
+     不需在 main 上手動補 padding（否則只有第一個內頁的頂部會留白）。
+   puppeteer 的 page.pdf({ margin: ... }) 需在 useCover 時不傳 margin，
+   讓 Chromium 採用 CSS @page margin 而非覆蓋。 */
+@page { margin: 16mm 16mm 18mm 16mm; }
+@page :first { margin: 0; }
+.cover-page {
+  width: 210mm;
+  height: 297mm;
+  page-break-after: always;
+  break-after: page;
+}
+.cover {
+  width: 100%;
+  height: 100%;
+  padding: 26mm 24mm 22mm 24mm;
+  background: linear-gradient(160deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: #fff;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.cover-kicker {
+  font-size: 24px; font-weight: 700; letter-spacing: 6px;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  gap: 20px;
+  align-self: stretch;
+  text-align: center;
+}
+.cover-kicker::before,
+.cover-kicker::after {
+  content: ""; flex: 1; max-width: 80px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.cover-main {
+  flex: 1;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+/* 重置 h1/h2 全域樣式，避免封面標題套到內頁 h2 漸層橫條樣式。
+   注意：不要在這裡寫 padding/border-radius，否則會以 type+class 的優先級
+   壓過下方 .cover-client 的設定。 */
+h1.cover-client, h2.cover-course {
+  background: none;
+  break-after: auto;
+}
+.cover-client {
+  font-size: 60px; font-weight: 800;
+  line-height: 1.15; letter-spacing: 2px;
+  margin: 0 0 56px;
+  color: #fff;
+  display: inline-block;
+  padding: 25px 40px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 6px;
+  text-align: center;
+}
+.cover-client strong { background: none; color: #fff; }
+.cover-line {
+  width: 56px; height: 2px;
+  background: rgba(255, 255, 255, 0.8);
+  margin: 0 auto 26px;
+}
+.cover-course {
+  font-size: 30px; font-weight: 700;
+  line-height: 1.45; letter-spacing: .5px;
+  color: #fff;
+  margin: 0 auto;
+  max-width: 620px;
+  text-align: center;
+}
+.cover-course strong { background: none; color: #fff; }
+.cover-tagline {
+  margin: 22px auto 0;
+  font-size: 17px; line-height: 1.85;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: .3px;
+  max-width: 560px;
+  text-align: center;
+}
+
+.cover-meta-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding-top: 22px;
+  margin-bottom: 4mm;
+  border-top: 2px solid rgba(255, 255, 255, 0.85);
+}
+.cover-meta-cell { padding: 0; border: 0; background: none; text-align: center; }
+.cover-meta-label {
+  font-size: 21px; font-weight: 700; letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 10px;
+}
+.cover-meta-value {
+  font-size: 24px; font-weight: 800; letter-spacing: .3px;
+  color: #fff; line-height: 1.35;
+  background: none;
+}
+.cover-meta-value strong { background: none; color: #fff; }
