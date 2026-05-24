@@ -44,6 +44,13 @@ const SECTION_HINT = {
 const TRUTHY = /^(true|yes|1|on)$/i;
 const isTruthy = (v) => v === true || (typeof v === 'string' && TRUTHY.test(v.trim()));
 
+// 封面三欄資訊 icon（內嵌 SVG，stroke 跟隨 currentColor）。
+const COVER_ICONS = {
+  '課程時數': '<svg class="cover-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>',
+  '提案日期': '<svg class="cover-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><line x1="3.5" y1="10" x2="20.5" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>',
+  '講師': '<svg class="cover-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20.5c.6-4 3.8-7 7.5-7s6.9 3 7.5 7"/></svg>',
+};
+
 // 品牌 icon（內嵌 SVG，fill 跟隨連結文字色）。key 為小寫的連結標籤。
 const BRAND_ICONS = {
   medium: '<svg class="link-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M13.54 12a6.8 6.8 0 0 1-6.77 6.82A6.8 6.8 0 0 1 0 12a6.8 6.8 0 0 1 6.77-6.82A6.8 6.8 0 0 1 13.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42-1.87 0-3.39-2.88-3.39-6.42s1.52-6.42 3.39-6.42 3.38 2.88 3.38 6.42M24 12c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75C23.47 6.25 24 8.83 24 12z"/></svg>',
@@ -365,19 +372,48 @@ function renderCover(meta, cfg, client, body) {
     meta.date ? { label: '提案日期', value: meta.date } : null,
     ins.name ? { label: '講師', value: ins.name } : null,
   ].filter(Boolean);
-  const metaCells = items.map((it) =>
-    `<div class="cover-meta-cell">` +
-    `<div class="cover-meta-label">${esc(it.label)}</div>` +
-    `<div class="cover-meta-value">${esc(it.value)}</div>` +
-    `</div>`
-  ).join('');
+  // 封面 value 字級放大後，三欄寬度容不下完整一行；針對常見會超寬的欄位做斷行：
+  // - 課程時數：在「（共 X 小時）」前插 <br>，讓括號內容獨立第二行
+  // - 講師：「中文姓名 英文姓名」之間插 <br>，拆兩行（如「林鼎淵 Dean Lin」）
+  const formatValue = (label, val) => {
+    const e = esc(val);
+    if (label === '課程時數') {
+      return e.replace(/\s*([（(])/, '<br>$1');
+    }
+    if (label === '講師') {
+      return e.replace(/^([一-龥]+)\s+(.+)$/, '$1<br>$2');
+    }
+    return e;
+  };
+  const metaCells = items.map((it) => {
+    const icon = COVER_ICONS[it.label] || '';
+    return `<div class="cover-meta-cell">` +
+      (icon ? `<div class="cover-meta-icon">${icon}</div>` : '') +
+      `<div class="cover-meta-label">${esc(it.label)}</div>` +
+      `<div class="cover-meta-value">${formatValue(it.label, it.value)}</div>` +
+      `</div>`;
+  }).join('');
+  const kickerHtml =
+    `<div class="cover-kicker">` +
+    `<i class="kicker-diamond"></i>` +
+    `<span class="kicker-line"></span>` +
+    `<span class="kicker-text">企業內訓提案</span>` +
+    `<span class="kicker-line"></span>` +
+    `<i class="kicker-diamond"></i>` +
+    `</div>`;
+  const dividerHtml =
+    `<div class="cover-line">` +
+    `<span class="cover-line-seg"></span>` +
+    `<i class="cover-line-diamond"></i>` +
+    `<span class="cover-line-seg"></span>` +
+    `</div>`;
   return `
   <section class="cover-page">
     <div class="cover">
-      <div class="cover-kicker">企業內訓提案</div>
+      ${kickerHtml}
       <div class="cover-main">
         <h1 class="cover-client">${esc(client)}</h1>
-        ${courseTitle ? `<div class="cover-line"></div><h2 class="cover-course">${courseTitle}</h2>` : ''}
+        ${courseTitle ? `${dividerHtml}<h2 class="cover-course">${courseTitle}</h2>` : ''}
         ${tagline ? `<p class="cover-tagline">${esc(tagline)}</p>` : ''}
       </div>
       ${metaCells ? `<div class="cover-meta-row">${metaCells}</div>` : ''}

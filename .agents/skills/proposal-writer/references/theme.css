@@ -113,6 +113,9 @@ ul.tool-list li:last-child { border-bottom: 0; }
   font-size: 11.5px; font-weight: 700; letter-spacing: .2px;
   padding: 4px 11px; border-radius: 6px;
 }
+/* .tool-tag 本身已是粗體有底色標籤；若撰寫時 markdown 用了 **粗體** 包工具名，
+   不要再疊上 strong 的螢光筆背景與深色 */
+.tool-tag strong { background: none; color: var(--accent); font-weight: 700; }
 .tool-desc { color: var(--ink-soft); }
 
 /* ── 預計成效 / 適合對象：勾選清單 ────────────── */
@@ -240,26 +243,37 @@ body.has-cover .doc-head { display: none; }
 .cover {
   width: 100%;
   height: 100%;
-  padding: 26mm 24mm 22mm 24mm;
+  /* 左右 18mm（而非 24mm）給三欄資訊更多寬度；底部三欄字級放大 2 倍後，
+     講師欄位約需 230px 才容得下「林鼎淵 Dean Lin」，邊距太大會撐爆。 */
+  padding: 26mm 18mm 22mm 18mm;
   background: linear-gradient(160deg, var(--accent) 0%, var(--accent-deep) 100%);
   color: #fff;
   display: flex; flex-direction: column;
   overflow: hidden;
 }
 
+/* ── Kicker：◇ — 字 — ◇（菱形端點＋短線雙包夾）─────── */
 .cover-kicker {
-  font-size: 24px; font-weight: 700; letter-spacing: 6px;
-  color: #fff;
   display: flex; align-items: center; justify-content: center;
-  gap: 20px;
+  gap: 28px;
   align-self: stretch;
-  text-align: center;
 }
-.cover-kicker::before,
-.cover-kicker::after {
-  content: ""; flex: 1; max-width: 80px;
-  height: 1px;
+.cover-kicker .kicker-text {
+  font-size: 26px; font-weight: 600;
+  letter-spacing: 10px;
+  color: rgba(255, 255, 255, 0.92);
+  padding-left: 10px;  /* 補正 letter-spacing 視覺左偏 */
+}
+.cover-kicker .kicker-line {
+  width: 96px; height: 1.5px;
   background: rgba(255, 255, 255, 0.55);
+  flex: none;
+}
+.cover-kicker .kicker-diamond {
+  width: 12px; height: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  transform: rotate(45deg);
+  flex: none;
 }
 
 .cover-main {
@@ -268,65 +282,112 @@ body.has-cover .doc-head { display: none; }
   justify-content: center;
   align-items: center;
 }
-/* 重置 h1/h2 全域樣式，避免封面標題套到內頁 h2 漸層橫條樣式。
-   注意：不要在這裡寫 padding/border-radius，否則會以 type+class 的優先級
-   壓過下方 .cover-client 的設定。 */
-h1.cover-client, h2.cover-course {
-  background: none;
-  break-after: auto;
-}
+/* 重置封面標題，避免套到全域 h2（內頁漸層橫條）樣式。
+   ⚠️ 特異度陷阱：`h1.cover-client`（0,1,1）會壓過 `.cover-client`（0,1,0）。
+   因此凡是 .cover-client 需要實設的屬性（background / padding / border-radius
+   等），都不可在此規則寫成 none / 0；只放真正全部封面標題共用、且為「重置」
+   性質的屬性。h1 本身無預設背景，不需要 background: none；h2 才需要。 */
+h1.cover-client, h2.cover-course { break-after: auto; }
+h2.cover-course { background: none; }
+/* ── 客戶名卡片：白色細邊框 + 透明背景 + 白字 ──
+   靠線條框界、不靠色塊反轉。中央光暈與陰影皆不加，維持「不靠對比裝飾」原則。 */
 .cover-client {
-  font-size: 60px; font-weight: 800;
-  line-height: 1.15; letter-spacing: 2px;
-  margin: 0 0 56px;
+  font-size: 64px; font-weight: 900;
+  line-height: 1.1; letter-spacing: 2px;
+  margin: 0 0 48px;
   color: #fff;
+  background: none;
   display: inline-block;
-  padding: 25px 40px;
-  border: 2px solid rgba(255, 255, 255, 0.55);
+  padding: 22px 48px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
   border-radius: 6px;
   text-align: center;
 }
 .cover-client strong { background: none; color: #fff; }
+
+/* ── 中段分隔線：短線 — 菱形 — 短線 ─────────────── */
 .cover-line {
-  width: 56px; height: 2px;
-  background: rgba(255, 255, 255, 0.8);
-  margin: 0 auto 26px;
+  width: 160px; height: auto;
+  background: none;
+  margin: 0 auto 24px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px;
 }
+.cover-line .cover-line-seg {
+  flex: 1; height: 1px;
+  background: rgba(255, 255, 255, 0.7);
+}
+.cover-line .cover-line-diamond {
+  width: 6px; height: 6px;
+  background: #fff;
+  transform: rotate(45deg);
+  flex: none;
+}
+
 .cover-course {
-  font-size: 30px; font-weight: 700;
-  line-height: 1.45; letter-spacing: .5px;
+  font-size: 28px; font-weight: 700;
+  line-height: 1.55; letter-spacing: .5px;
   color: #fff;
   margin: 0 auto;
-  max-width: 620px;
+  max-width: 600px;
   text-align: center;
 }
 .cover-course strong { background: none; color: #fff; }
 .cover-tagline {
-  margin: 22px auto 0;
-  font-size: 17px; line-height: 1.85;
-  color: rgba(255, 255, 255, 0.95);
+  margin: 28px auto 0;
+  font-size: 23px; line-height: 1.85;
+  color: rgba(255, 255, 255, 0.9);
   letter-spacing: .3px;
-  max-width: 560px;
+  max-width: 760px;
   text-align: center;
 }
 
+/* ── 底部三欄：圓 icon + 標籤 + 值（icon 與字級皆放大 2 倍）── */
 .cover-meta-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  padding-top: 22px;
+  gap: 12px;
+  padding-top: 36px;
   margin-bottom: 4mm;
-  border-top: 2px solid rgba(255, 255, 255, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
 }
-.cover-meta-cell { padding: 0; border: 0; background: none; text-align: center; }
+.cover-meta-cell {
+  padding: 0; border: 0; background: none;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center;
+  gap: 14px;
+}
+.cover-meta-icon {
+  width: 88px; height: 88px;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.cover-meta-icon .cover-icon {
+  width: 44px; height: 44px;
+  display: block;
+}
 .cover-meta-label {
-  font-size: 21px; font-weight: 700; letter-spacing: 3px;
-  color: rgba(255, 255, 255, 0.65);
-  margin-bottom: 10px;
+  font-size: 26px; font-weight: 600; letter-spacing: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0;
+  padding-left: 4px;  /* 補正 letter-spacing 視覺左偏 */
 }
 .cover-meta-value {
-  font-size: 24px; font-weight: 800; letter-spacing: .3px;
-  color: #fff; line-height: 1.35;
+  font-size: 24px; font-weight: 700; letter-spacing: .3px;
+  color: #fff; line-height: 1.4;
   background: none;
+  /* nowrap：避免短值（如「2 場 × 6 小時」「2026-05-24」）被三欄寬度自動斷字；
+     顯式 <br>（課程時數的「（共 X 小時）」、講師中英文姓名）仍會換行。 */
+  white-space: nowrap;
+  /* 固定容器為 2 行高度，內部垂直置中：單行 value（如日期）會落在中央，
+     與兩行 value（時數、講師）的視覺中線對齊，三欄上下平衡。 */
+  min-height: calc(24px * 1.4 * 2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 .cover-meta-value strong { background: none; color: #fff; }
