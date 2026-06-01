@@ -14,3 +14,10 @@ pnpm-debug.log*
 .cache/
 .tmp/
 tmp/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+doc/_raw/
+.agents/backup
