@@ -1,0 +1,4 @@
+# 文件文字擷取所需套件（PDF / PPTX / DOCX → 文字）
+pdfplumber==0.11.9
+python-docx==1.2.0
+python-pptx==1.0.2
