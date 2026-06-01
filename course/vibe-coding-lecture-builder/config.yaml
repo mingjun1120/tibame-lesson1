@@ -1,0 +1,23 @@
+# 課程專屬設定（只需覆蓋 global.yaml 的欄位）
+page:
+  title: "用 Vibe Coding 打造可重複使用的講義網站"
+  badge: "Vibe Coding 實戰 · Codex × Agent Skills"
+  hero_title: "用 Vibe Coding 打造<br>可重複使用的講義網站"
+  subtitle: "從 Codex 一句話生成網頁，到逆向成 Markdown 模板、封裝為 Agent Skill — 讓 Vibe Coding 的成果從免洗餐具，變成長期可用、可維護、可擴增的工具。"
+
+quotes:
+  opening:
+    text: "別把 Vibe Coding 的成果當成免洗餐具，<br>用完就丟。"
+  closing:
+    text: >
+      AI 真正厲害的地方，<br>
+      從來不是幫你省下一次工作的時間，<br><br>
+      而是讓你有機會，把自己的工作流，<br>
+      設計成一套可以持續優化的模板。
+
+seo:
+  title: "用 Vibe Coding 打造可重複使用的講義網站｜Codex × Agent Skills"
+  description: "用 Codex 從零生成講義網頁，逆向成可維護的 Markdown 模板，再封裝成 Agent Skill，讓 Vibe Coding 從 Demo 走向長期可用的產品。"
+  # ⚠️ 部署後請改成你的實際網址（社群預覽圖必須是絕對 URL）
+  image: "https://deanlin.net/course/vibe-coding-lecture-builder/assets/og-image.jpg"
+  url: "https://deanlin.net/course/vibe-coding-lecture-builder/"

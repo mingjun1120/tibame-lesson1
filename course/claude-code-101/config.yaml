@@ -1,0 +1,22 @@
+# 課程專屬設定（只需覆蓋 global.yaml 的欄位）
+page:
+  title: "Claude Code 從零開始"
+  badge: "入門課程 · 終端機 AI 開發代理"
+  hero_title: "Claude Code<br>從零開始"
+  subtitle: "從安裝到自動化工作流，一步步學會用 Anthropic 官方的終端機 AI 代理，讓 AI 真正幫你讀檔、改碼、跑測試。"
+
+quotes:
+  opening:
+    text: "別再只是複製貼上 AI 的回答，<br>讓它直接走進你的專案動手做。"
+  closing:
+    text: >
+      工具會更新，模型會迭代，<br>
+      但「把工作流交給 AI、把判斷留給自己」的能力，<br><br>
+      會一直是你最值錢的本事。
+
+seo:
+  title: "Claude Code 從零開始｜終端機 AI 開發代理入門"
+  description: "從安裝、第一個對話，到 CLAUDE.md、Agent Skills、MCP 與自動化工作流，帶你從零學會 Claude Code。"
+  # ⚠️ 部署後請改成你的實際網址（社群預覽圖必須是絕對 URL）
+  image: "https://deanlin.net/course/claude-code-101/assets/og-image.jpg"
+  url: "https://deanlin.net/course/claude-code-101/"
