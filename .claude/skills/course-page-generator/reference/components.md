@@ -1,0 +1,539 @@
+# Component Mapping Reference
+
+Markdown 語法 → HTML 元件的完整對照。產生 HTML 時依此規則轉換。
+
+## 1. Section（主章節）
+
+**Markdown：**
+```markdown
+# 新專案：用 SDD 讓 AI 根據規格建立專案
+> 規格驅動開發（Spec-Driven Development）— 讓 AI 不只寫程式，還幫你建立完善的規格文件
+```
+
+**HTML：**
+```html
+<hr class="divider">
+<section class="section" id="new-project">
+  <div class="reveal">
+    <span class="section-label"><span class="num">1</span> 新專案</span>
+    <h2>用 SDD 讓 AI 根據規格建立專案</h2>
+    <p class="lead">
+      規格驅動開發（Spec-Driven Development）— 讓 AI 不只寫程式，還幫你建立完善的規格文件
+    </p>
+  </div>
+```
+
+規則：
+- `#` 標題以冒號分為 label 和 title（`# LABEL：TITLE`），冒號前為 section-label，冒號後為 h2
+- 若無冒號，整個作為 h2，section-label 使用簡短版
+- 緊接著的 `>` blockquote 作為 `.lead` 段落
+- 自動遞增編號（第一個主章節 = 1）
+- `id` 由標題轉為 kebab-case 英文（需要你根據語意判斷）
+- 第一個 section 前加 `<hr class="divider">`
+
+## 2. Sub-section（子章節）
+
+**Markdown：**
+```markdown
+## OpenSpec 初始化
+```
+
+**HTML：**
+```html
+<div class="reveal" id="sub-openspec-init">
+  <div class="sub-title"><span class="bar"></span>OpenSpec 初始化</div>
+```
+
+規則：
+- `##` 標題轉為 `.sub-title`
+- 自動產生 `id`（加 `sub-` 前綴）
+- 出現在 TOC 的子項目中
+
+## 3. Card（卡片）
+
+**Markdown：**
+```markdown
+### 🔧 為什麼需要 OpenSpec？
+- AI 寫程式越來越快，但專案越改越亂
+- 關鍵人物離職，沒有文件，系統知識直接斷層
+- 解法：白話文對話 → AI 自動建立規格文件
+```
+
+**HTML：**
+```html
+<div class="card">
+  <h3><span class="icon">🔧</span> 為什麼需要 OpenSpec？</h3>
+  <ul>
+    <li>AI 寫程式越來越快，但專案越改越亂</li>
+    <li>關鍵人物離職，沒有文件，系統知識直接斷層</li>
+    <li>解法：白話文對話 → AI 自動建立規格文件</li>
+  </ul>
+</div>
+```
+
+規則：
+- `###` 標題帶 emoji → card 的 `h3`，emoji 放在 `.icon` span 中
+- 底下的 bullet list → card 內的 `<ul>`
+- 底下的段落 → card 內的 `<p>`
+- 整個 card 包在 `<div class="reveal">` 中
+
+## 4. Prompt Block（終端機提示塊）
+
+**Markdown：**
+~~~markdown
+```prompt [label="安裝指令"]
+npm install -g @fission-ai/openspec@latest
+openspec init
+```
+~~~
+
+**HTML：**
+```html
+<div class="prompt-block">
+  <div class="prompt-header">
+    <div class="dots"><span></span><span></span><span></span></div>
+    Terminal
+    <span class="label">安裝指令</span>
+  </div>
+  <div class="prompt-body">npm install -g @fission-ai/openspec@latest
+openspec init</div>
+</div>
+```
+
+規則：
+- 用 `prompt` 作為 fenced code block 的語言標記
+- `[label="..."]` 可選，顯示在右上角
+- header 中間文字預設為 "Prompt"，若內容是 shell 指令則用 "Terminal"
+- body 內容保持原樣（`white-space: pre-wrap`）
+
+## 4b. Code Block（程式碼塊）
+
+**Markdown：**
+~~~markdown
+```code [label="CLAUDE.md 範例"]
+# 專案規範
+請用繁體中文回答
+```
+~~~
+
+**HTML：** 與 Prompt Block 相同結構，header 文字改為 `Code`。
+
+規則：
+- 用 `code` 作為 fenced code block 的語言標記
+- `[label="..."]` 可選，顯示在右上角
+- header 固定顯示 "Code"（不自動偵測）
+- 適合展示設定檔、程式碼片段等非終端機內容
+
+## 5. Insight Box（洞察框）
+
+**Markdown：**
+```markdown
+> **AI 正在改變企業決策**
+> 過去 Dashboard 這類系統，企業通常找廠商購買、支付年費維護。
+> 但 Vibe Coding 的出現正讓企業做出不同的選擇。
+```
+
+**HTML：**
+```html
+<div class="insight">
+  <div class="insight-title">⏳ AI 正在改變企業決策</div>
+  <p>過去 Dashboard 這類系統，企業通常找廠商購買、支付年費維護。</p>
+  <p style="margin-top:.5rem">但 Vibe Coding 的出現正讓企業做出不同的選擇。</p>
+</div>
+```
+
+規則：
+- blockquote 第一行以 `**粗體**` 開頭 → insight box
+- 粗體文字成為 `.insight-title`（自動加 ⏳ emoji 前綴）
+- 後續段落（以空行分隔）分別成為 `<p>` 元素
+- 若 blockquote 不以粗體開頭，則判斷為普通引言或 lead 文字
+
+## 6. Flow Steps（流程步驟）
+
+**Markdown：**
+```markdown
+[flow]
+1. proposal.md — 確認目標與範圍
+2. design.md — 技術選型與風險評估
+3. specs/ — 按功能分類的詳細規格
+4. task.md — 任務清單，完成自動打勾
+[/flow]
+```
+
+**HTML：**
+```html
+<div class="flow">
+  <div class="flow-step">
+    <div class="step-num">1</div>
+    <div class="step-title">proposal.md</div>
+    <div class="step-desc">確認目標與範圍</div>
+  </div>
+  <div class="flow-step">
+    <div class="step-num">2</div>
+    <div class="step-title">design.md</div>
+    <div class="step-desc">技術選型與風險評估</div>
+  </div>
+  <!-- ... -->
+</div>
+```
+
+規則：
+- 使用 `[flow]...[/flow]` 包裹列表，支援 ordered list（`1. `）與 unordered list（`- `）
+- 每個項目以 `—` 或 ` - ` 分隔標題和描述
+- 若無分隔符，整行作為 step-title，step-desc 留空
+- 也可以不用 `[flow]` 標記，在 `###` 卡片標題包含「流程」「步驟」等關鍵字時自動轉換
+
+## 7. Tags（標籤）
+
+**Markdown：**
+```markdown
+[tags]
+- [orange] 人工手打：耗時且風格不一致
+- [purple] AI 自動生成：長短隨機、中英混雜
+- [green] 解法：git-smart-commit Skill
+[/tags]
+```
+
+**HTML：**
+```html
+<div class="tags">
+  <span class="tag orange">人工手打：耗時且風格不一致</span>
+  <span class="tag purple">AI 自動生成：長短隨機、中英混雜</span>
+  <span class="tag green">解法：git-smart-commit Skill</span>
+</div>
+```
+
+可用顏色：`green`, `orange`, `purple`, `blue`
+
+⚠️ 帶顏色的 `- [color] text` 項目**必須**放在 `[tags]...[/tags]` 區塊內才會生效。獨立使用時會被當成普通文字，不會套用顏色樣式。
+
+## 8. Checklist（勾選清單）
+
+**Markdown：**
+```markdown
+- [x] 電子郵件格式錯誤 → 前端擋住、不呼叫 API
+- [x] 密碼不符規則 → 顯示對應錯誤訊息
+- [x] 格式正確 → 呼叫 Mock API → 成功取得 Token
+```
+
+**HTML：**
+```html
+<ul class="checklist">
+  <li>電子郵件格式錯誤 → 前端擋住、不呼叫 API</li>
+  <li>密碼不符規則 → 顯示對應錯誤訊息</li>
+  <li>格式正確 → 呼叫 Mock API → 成功取得 Token</li>
+</ul>
+```
+
+規則：
+- `- [x]` 項目 → checklist（CSS 自帶 ✓ 圖示）
+
+適用場景：表達「已驗證」「已完成」「已踩過的坑」等**帶有完成語意**的事項清單。
+- ✅ 適合：測試情境清單、踩坑紀錄、已確認的檢查項目
+- ❌ 不適合：核心觀點、重點摘要、一般條列（這些應使用卡片 `###` + 普通 list `- item`）
+
+## 9. Summary Grid（總結卡片）
+
+**Markdown：**
+```markdown
+# 總結
+[summary]
+- 🏗️ **新專案 — SDD** | OpenSpec + Spec-Driven Development，讓 AI 根據規格建立 Dashboard
+- ⚙️ **舊專案 — Skills** | 設計 Commit / PR / Worktree Skills，讓 AI 有規範可循
+- 🧪 **導入測試 — CI/CD** | 用 Workflow 驅動 AI 撰寫測試，搭配 GitHub Action 守住品質
+[/summary]
+```
+
+**HTML：**
+```html
+<div class="summary-grid">
+  <div class="summary-card">
+    <div class="sc-icon">🏗️</div>
+    <h4>新專案 — SDD</h4>
+    <p>OpenSpec + Spec-Driven Development，讓 AI 根據規格建立 Dashboard</p>
+  </div>
+  <!-- ... -->
+</div>
+```
+
+規則：
+- `[summary]...[/summary]` 包裹的 list
+- 每項格式：`emoji **標題** | 描述`
+- emoji → `.sc-icon`，粗體 → `<h4>`，`|` 後面 → `<p>`
+
+## 10. Image（獨立圖片）
+
+**Markdown：**
+```markdown
+![架構示意圖](images/architecture.png)
+```
+
+**HTML：**
+```html
+<figure class="content-image">
+  <img src="images/architecture.png" alt="架構示意圖" loading="lazy">
+  <figcaption>架構示意圖</figcaption>
+</figure>
+```
+
+規則：
+- 獨立一行的 `![alt](src)` → 圖片區塊，置中顯示
+- `alt` 文字自動成為 `<figcaption>` 圖片說明
+- 若 `alt` 為空則不產生 figcaption
+- 圖片包在 `<div class="reveal">` 中
+- 行內圖片（在文字段落或列表中）則以 `<img class="inline-image">` 渲染
+
+## 11. Image-Text（圖文並排）
+
+**Markdown：**
+```markdown
+[image-text position="left" width="50"]
+![產品截圖](images/screenshot.png)
+這是產品的主要介面，提供了 **直覺式操作** 體驗。
+- 支援拖放操作
+- 即時預覽結果
+[/image-text]
+```
+
+**HTML：**
+```html
+<div class="image-text" style="--img-width:50%">
+  <div class="image-text__img">
+    <img src="images/screenshot.png" alt="產品截圖" loading="lazy">
+  </div>
+  <div class="image-text__body">
+    <p>這是產品的主要介面，提供了 <strong>直覺式操作</strong> 體驗。</p>
+    <ul>
+      <li>支援拖放操作</li>
+      <li>即時預覽結果</li>
+    </ul>
+  </div>
+</div>
+```
+
+規則：
+- `[image-text]...[/image-text]` 包裹圖片與文字
+- `position="left"`（預設）：圖片在左、文字在右
+- `position="right"`：圖片在右、文字在左
+- `width="N"` 設定圖片佔比百分比（預設 40），例如 `width="30"` 或 `width="60"`
+- 文字區域支援段落、**粗體**、`程式碼`、連結、列表等行內格式
+- 響應式：平板（≤ 900px）及手機自動改為上下排列（圖片在上）
+- 整個區塊包在 `<div class="reveal">` 中
+
+## 12. YouTube Embed（YouTube 影片嵌入）
+
+**Markdown（單行）：**
+```markdown
+[youtube id="dQw4w9WgXcQ" title="Demo 影片"]
+```
+
+**Markdown（區塊，含說明文字）：**
+```markdown
+[youtube id="dQw4w9WgXcQ"]
+這是一段示範影片的說明
+[/youtube]
+```
+
+**HTML：**
+```html
+<div class="youtube-embed">
+  <div class="youtube-wrapper" data-id="dQw4w9WgXcQ">
+    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Demo 影片" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>
+  </div>
+  <p class="youtube-caption">Demo 影片</p>
+</div>
+```
+
+規則：
+- `id` 為 YouTube 影片 ID（網址中 `v=` 後面的值）
+- `title` 為選填的影片標題/說明，會顯示在影片下方
+- 區塊形式 `[youtube]...[/youtube]` 中間的文字作為 caption
+- 影片以 16:9 比例響應式嵌入
+- 列印模式下 iframe 隱藏，改為顯示 YouTube 連結
+- 整個區塊包在 `<div class="reveal">` 中
+
+## 13. Raw HTML（自訂 HTML 區塊）
+
+**Markdown：**
+```markdown
+[html]
+<div style="display:flex;gap:12px">
+  <div style="flex:1;padding:16px;border:1px solid #ccc;border-radius:8px">
+    <h3>左側面板</h3>
+    <p>任何自訂 HTML 內容</p>
+  </div>
+  <div style="flex:1;padding:16px;border:1px solid #ccc;border-radius:8px">
+    <h3>右側面板</h3>
+    <p>包含完整的 CSS 樣式</p>
+  </div>
+</div>
+[/html]
+```
+
+**HTML：**
+```html
+<iframe class="raw-html-frame" srcdoc="..." frameborder="0" scrolling="no"
+  style="width:100%;border:none;overflow:hidden"
+  onload="this.style.height=this.contentDocument.documentElement.scrollHeight+'px'">
+</iframe>
+```
+
+規則：
+- `[html]...[/html]` 包裹的內容會原封不動嵌入 `<iframe srcdoc>` 中
+- CSS 完全隔離，不會影響外層課程頁面的樣式
+- 內容可以是完整的 HTML 文件（含 `<!DOCTYPE html>`、`<style>` 等），也可以是 HTML 片段
+- iframe 載入後自動調整高度以符合內容
+- 適合需要獨立樣式的互動元件、對比圖表、自訂排版等場景
+
+## 14. Lab Session（實作時間區塊）
+
+**Markdown：**
+```markdown
+[lab-session title="🛠️ 實作時間" duration="15 分鐘" hint="有問題歡迎提出，你的問題可能是大家的問題"]
+- 設定你的第一個 Agent Skill
+- 執行 build 並確認 HTML 正確輸出
+[/lab-session]
+```
+
+**HTML：**
+```html
+<div class="lab-session">
+  <div class="lab-session__deco" aria-hidden="true">⚙</div>
+  <div class="lab-session__inner">
+    <h3 class="lab-session__title">🛠️ 實作時間</h3>
+    <p class="lab-session__hint">有問題歡迎提出，你的問題可能是大家的問題</p>
+    <div class="lab-session__duration">⏱ 15 分鐘</div>
+  </div>
+  <div class="lab-task-list">
+    <div class="lab-task-item">
+      <span class="lab-task-num">1</span>
+      <span class="lab-task-text">設定你的第一個 Agent Skill</span>
+    </div>
+    <div class="lab-task-item">
+      <span class="lab-task-num">2</span>
+      <span class="lab-task-text">執行 build 並確認 HTML 正確輸出</span>
+    </div>
+  </div>
+</div>
+```
+
+規則：
+- `[lab-session]...[/lab-session]` 包裹整個實作區塊
+- `title="..."` 為選填，預設 `🛠️ 實作時間`
+- `duration="..."` 為選填，顯示帶 ⏱ 前綴的時間膠囊
+- `hint="..."` 為選填，預設 `有問題歡迎提出，你的問題可能是大家的問題`
+- `- item` 行作為任務清單，自動編號
+- 整個區塊渲染為獨立的全螢幕 `<section class="lab-page">`
+- 使用 `--accent2` 色系（金/橙），與 `[qa-session]` 的 `--accent` 視覺有所區分
+
+## 15. QA Session（問答區塊）
+
+**Markdown（純提問畫面）：**
+```markdown
+[qa-session title="Q&A 時間"]
+[/qa-session]
+```
+
+**Markdown（含預設問答）：**
+```markdown
+[qa-session title="常見問題"]
+- Q: 這套工具適合初學者嗎？
+  A: 完全適合，我們設計了引導式流程，不需要先懂程式。
+- Q: 費用如何計算？
+  A: 基本功能免費，進階功能採訂閱制，詳見官網。
+[/qa-session]
+```
+
+**HTML：**
+```html
+<div class="qa-session">
+  <div class="qa-session__deco" aria-hidden="true">?</div>
+  <div class="qa-session__inner">
+    <h3 class="qa-session__title">Q&amp;A 時間</h3>
+    <p class="qa-session__hint">歡迎提問，一起深入探討</p>
+  </div>
+  <!-- 有 items 時才產生 .qa-list -->
+  <div class="qa-list">
+    <div class="qa-item">
+      <button class="qa-question" aria-expanded="false" onclick="toggleQA(this)">
+        <span class="qa-badge qa-badge--q">Q</span>
+        <span class="qa-q-text">這套工具適合初學者嗎？</span>
+        <svg class="qa-chevron" ...><!-- chevron icon --></svg>
+      </button>
+      <div class="qa-answer">
+        <div class="qa-answer-inner">
+          <span class="qa-badge qa-badge--a">A</span>
+          <div class="qa-a-text">完全適合，我們設計了引導式流程...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+規則：
+- `[qa-session]...[/qa-session]` 包裹整個問答區塊
+- `title="..."` 為選填，預設 `Q&A 時間`
+- 每個問答項目以 `- Q: 問題` 開頭，下一行 `  A: 答案`（兩格縮排）
+- 若無 Q&A 項目，只呈現全版視覺畫面（適合作為課程開放提問的場景佔位）
+- 點擊問題按鈕展開/收合答案（accordion）
+- 整個區塊由 `<section class="qa-page">` 包成獨立全螢幕頁面；舊版產物若仍在一般 `.section` 中，也會以 100vh/100dvh 呈現
+- 完整支援深色/淺色模式與所有主題色切換
+
+## 16. Survey（課程滿意度問卷區塊）
+
+**Markdown：**
+```markdown
+[survey title="課程滿意度問卷" url="https://forms.gle/..." hint="您的意見是我們進步的動力" btn="填寫問卷"]
+[/survey]
+```
+
+**HTML：**
+```html
+<div class="survey-session">
+  <div class="survey-session__deco" aria-hidden="true">★</div>
+  <div class="survey-session__inner">
+    <h3 class="survey-session__title">課程滿意度問卷</h3>
+    <p class="survey-session__hint">您的意見是我們進步的動力</p>
+    <a class="survey-btn" href="https://forms.gle/..." target="_blank" rel="noopener">填寫問卷</a>
+  </div>
+</div>
+```
+
+規則：
+- `[survey]...[/survey]` 包裹整個問卷區塊
+- `title="..."` 為選填，預設 `課程滿意度問卷`
+- `url="..."` 為選填，有值時顯示按鈕連結；無值時只顯示標題與提示
+- `hint="..."` 為選填，預設 `您的意見是我們進步的動力`
+- `btn="..."` 為選填，按鈕文字預設 `填寫問卷`
+- 整個區塊包成獨立全螢幕 `<section class="survey-page">`
+- 使用 `--accent3` → `--accent` 漸層色系，視覺上與 qa/lab 區塊有所區分
+
+## 15. Inline Elements
+
+| Markdown | HTML | 說明 |
+|---|---|---|
+| `**bold**` | `<strong>` | 粗體 |
+| `` `code` `` | `<code>` | 行內程式碼 |
+| `[text](url)` | `<a href="url">text</a>` | 連結 |
+| 一般段落 | `<p>` | card 或 section 內的段落 |
+
+## 15. Wrapping Rules
+
+- 每個獨立元件都包在 `<div class="reveal">` 中以啟動滾動動畫
+- 連續的 card + prompt-block 可以在同一個 reveal wrapper 中
+- insight box 通常獨立一個 reveal wrapper
+
+## Social Link SVG Icons
+
+用於 instructor section 和 footer 的社群連結 icon：
+
+| Platform | SVG |
+|---|---|
+| Medium | `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13.54 12a6.8 6.8 0 01-6.77 6.82A6.8 6.8 0 010 12a6.8 6.8 0 016.77-6.82A6.8 6.8 0 0113.54 12zm7.42 0c0 3.54-1.51 6.42-3.38 6.42S14.2 15.54 14.2 12s1.51-6.42 3.38-6.42 3.38 2.88 3.38 6.42zm2.94 0c0 3.17-.53 5.75-1.19 5.75-.66 0-1.19-2.58-1.19-5.75s.53-5.75 1.19-5.75c.66 0 1.19 2.58 1.19 5.75z"/></svg>` |
+| Facebook | `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>` |
+| Threads | `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.287 3.263-.809.993-1.927 1.587-3.324 1.768-1.138.147-2.258-.058-3.15-.579-1.005-.586-1.65-1.524-1.818-2.638-.322-2.15.946-3.71 2.476-4.407.967-.44 2.164-.685 3.553-.731-.21-1.118-.658-1.905-1.348-2.365-.823-.548-1.943-.685-3.125-.61l-.145-2.118c1.508-.098 2.995.097 4.165.86 1.024.668 1.73 1.69 2.102 3.058.8-.065 1.559-.033 2.24.128 2.346.555 3.844 2.086 4.33 4.13.612 2.573-.134 5.46-2.392 7.35-1.895 1.588-4.258 2.392-7.028 2.392z"/></svg>` |
+| YouTube | `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>` |
+| GitHub | `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>` |
+| LinkedIn | `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>` |
+| Email | `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>` |

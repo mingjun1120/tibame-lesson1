@@ -1,0 +1,393 @@
+/* ============================================================
+   proposal-writer — 提案 PDF 樣式（商務雅緻）
+   品牌色由 build-pdf.mjs 注入：:root { --accent }
+   美化／改版型只需編輯本檔，不需動 build-pdf.mjs。
+   ============================================================ */
+
+:root {
+  --ink: #1f2937;
+  --ink-soft: #4b5563;
+  --ink-strong: #111827;
+  --hair: #e7e9ee;
+  --accent-tint: color-mix(in srgb, var(--accent) 9%, #fff);
+  --accent-ring: color-mix(in srgb, var(--accent) 34%, #fff);
+  --accent-deep: color-mix(in srgb, var(--accent) 64%, #000);
+  --highlight: #FDE68A;   /* 粗體的螢光筆色（柔和琥珀黃，與藍色版面冷暖對比）*/
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.75;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+p { margin: 6px 0; orphans: 2; widows: 2; }
+strong {
+  font-weight: 700; color: var(--ink-strong);
+  /* 螢光筆效果：只填字的下半段，像馬克筆劃過 */
+  background: linear-gradient(transparent 45%, var(--highlight) 45%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+em { font-style: italic; }
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-ring); }
+code {
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-size: 12px;
+}
+
+/* ── 頁首 ─────────────────────────────────────── */
+.doc-head {
+  border-top: 3px solid var(--accent);
+  border-bottom: 1.5px solid var(--accent);
+  padding: 13px 0 15px;
+  margin-bottom: 6px;
+}
+.kicker {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  color: var(--accent); margin-bottom: 6px;
+}
+.kicker::before {
+  content: ""; display: inline-block;
+  width: 4px; height: 12px; background: var(--accent);
+  margin-right: 7px; vertical-align: -1px; border-radius: 1px;
+}
+.doc-title { font-size: 25px; font-weight: 800; color: var(--ink-strong); letter-spacing: .3px; }
+.doc-meta { margin-top: 9px; font-size: 13.5px; font-weight: 700; color: #6b7280; }
+
+/* ── 區塊標題 h2（漸層長條 + 區塊副標）──────────── */
+h2 {
+  display: flex; align-items: center;
+  margin: 26px 0 13px;
+  padding: 10px 16px;
+  border-radius: 7px;
+  background: linear-gradient(100deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: #fff;
+  font-size: 15px; font-weight: 800; letter-spacing: .4px;
+  break-after: avoid;
+}
+main > h2:first-of-type { margin-top: 16px; }
+h2 strong { color: #fff; background: none; }
+.h2-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; margin-right: 11px; flex: none;
+  background: #fff; color: var(--accent);
+  font-size: 12px; font-weight: 800; border-radius: 50%;
+}
+.h2-text { flex: 0 0 auto; }
+.h2-hint {
+  margin-left: auto; padding-left: 14px;
+  font-size: 11px; font-weight: 500; letter-spacing: 1.2px;
+  color: rgba(255, 255, 255, 0.82);
+  position: relative;
+}
+.h2-hint::before {
+  content: ""; position: absolute; left: 0; top: 50%;
+  width: 1px; height: 11px; margin-top: -5.5px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+/* ── 課程簡介 lead ────────────────────────────── */
+p.lead { color: var(--ink-soft); line-height: 1.9; }
+
+/* ── 一般清單 ─────────────────────────────────── */
+ul, ol { margin: 6px 0 6px 22px; }
+li { margin: 3px 0; break-inside: avoid; }
+
+/* ── 使用工具：對齊式規格清單 ─────────────────── */
+ul.tool-list { list-style: none; margin: 9px 0 0 14px; }
+ul.tool-list li {
+  display: flex; align-items: baseline; gap: 14px;
+  margin: 0; padding: 9px 3px;
+  border-bottom: 1px solid var(--hair);
+}
+ul.tool-list li:last-child { border-bottom: 0; }
+.tool-tag {
+  flex: none; min-width: 124px; text-align: center;
+  background: var(--accent-tint); color: var(--accent);
+  font-size: 11.5px; font-weight: 700; letter-spacing: .2px;
+  padding: 4px 11px; border-radius: 6px;
+}
+/* .tool-tag 本身已是粗體有底色標籤；若撰寫時 markdown 用了 **粗體** 包工具名，
+   不要再疊上 strong 的螢光筆背景與深色 */
+.tool-tag strong { background: none; color: var(--accent); font-weight: 700; }
+.tool-desc { color: var(--ink-soft); }
+
+/* ── 預計成效 / 適合對象：勾選清單 ────────────── */
+ul.check-list { list-style: none; margin: 9px 0 0 14px; }
+ul.check-list li {
+  position: relative; padding: 5px 0 5px 29px; margin: 2px 0;
+}
+ul.check-list li::before {
+  content: "✓"; position: absolute; left: 0; top: 7px;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-tint); color: var(--accent);
+  border: 1px solid var(--accent-ring);
+  font-size: 11px; font-weight: 800; line-height: 1; border-radius: 50%;
+}
+
+/* ── 課程目錄：編號清單 ──────────────────────── */
+ol.toc-list { list-style: none; margin: 9px 0 0 14px; counter-reset: toc; }
+ol.toc-list li {
+  counter-increment: toc; position: relative;
+  padding: 5px 0 5px 30px; margin: 2px 0;
+}
+ol.toc-list li::before {
+  content: counter(toc); position: absolute; left: 0; top: 6px;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--accent); color: var(--accent);
+  font-size: 11px; font-weight: 700; line-height: 1; border-radius: 50%;
+}
+
+/* ── 場次分隔帶（多場次課程的課程目錄／課程大綱）── */
+.session-band {
+  margin: 22px 0 13px;
+  padding: 8px 15px;
+  background: var(--accent-tint);
+  border-left: 4px solid var(--accent);
+  border-radius: 5px;
+  color: var(--accent);
+  font-size: 13.5px; font-weight: 800; letter-spacing: .3px;
+  break-after: avoid;
+}
+
+/* ── 課程大綱：章節（整章不跨頁）──────────────── */
+/* counter 機制：main 初始化 chapter；session-band 用 counter-set（而非 reset）
+   把計數歸零，多場次課程下每場的 ### 章節都會從 1. 開始，與課程目錄一致。
+   注意：counter-reset 在兄弟元素上會建立新 counter instance（不影響原 scope），
+   必須改用 counter-set 才能正確重置「現有」counter。 */
+main { counter-reset: chapter; }
+.session-band { counter-set: chapter 0; }
+.chapter { break-inside: avoid; margin: 15px 0; counter-increment: chapter; }
+.chapter h3 {
+  font-size: 13.5px; font-weight: 800; color: var(--ink-strong);
+  margin: 0 0 7px; padding: 2px 0 2px 11px;
+  border-left: 3px solid var(--accent);
+  break-after: avoid;
+}
+.chapter h3::before {
+  content: counter(chapter) ". ";
+  color: var(--accent);
+  margin-right: 2px;
+}
+.chapter ul { margin: 6px 0 6px 34px; }
+.chapter ul ul { margin: 3px 0 3px 22px; }
+.chapter li { margin: 4px 0; }
+.chapter ul ul > li { margin: 2px 0; color: var(--ink-soft); }
+
+/* ── 其他標題 ─────────────────────────────────── */
+h3 { font-size: 13.5px; font-weight: 700; color: var(--ink-strong); margin: 13px 0 5px; break-after: avoid; }
+h4 { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); margin: 10px 0 4px; }
+hr { border: 0; border-top: 1px solid var(--hair); margin: 13px 0; }
+
+/* ── 表格 ─────────────────────────────────────── */
+table { border-collapse: collapse; width: 100%; margin: 9px 0; font-size: 12px; break-inside: avoid; }
+th, td { border: 1px solid var(--hair); padding: 6px 9px; text-align: left; vertical-align: top; }
+th { background: #f9fafb; font-weight: 700; color: var(--ink-strong); }
+
+blockquote {
+  margin: 8px 0; padding: 6px 12px;
+  border-left: 3px solid #d1d5db; color: var(--ink-soft); background: #f9fafb;
+}
+
+/* ── 關於講師 ─────────────────────────────────── */
+.instructor {
+  margin-top: 30px; padding: 17px 19px;
+  background: #f9fafb; border: 1px solid var(--hair);
+  border-top: 3px solid var(--accent); border-radius: 8px;
+  break-inside: avoid;
+}
+.ins-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  color: var(--accent); margin-bottom: 8px;
+}
+.ins-name { font-size: 14.5px; font-weight: 800; color: var(--ink-strong); }
+.ins-name span { font-size: 11.5px; font-weight: 500; color: #6b7280; margin-left: 8px; }
+.ins-bio { margin: 8px 0; color: var(--ink-soft); }
+.ins-highlights { list-style: none; margin: 9px 0 0; padding: 0; }
+.ins-highlights li { margin: 3px 0; color: var(--ink-soft); }
+.ins-links { margin-top: 10px; font-size: 12px; color: #9ca3af; }
+.ins-links a { border-bottom: 0; display: inline-flex; align-items: center; gap: 4px; }
+.link-icon { width: 11px; height: 11px; flex: none; }
+
+/* ── 封面頁（cover: true 啟用）──────────────────
+   設計原則：滿版 × 資訊清楚 × 不靠對比裝飾。
+   - 滿版：absolute + 負 margin 撐到 A4 物理四邊。
+   - 資訊清楚：所有文字 ≥ 14px、白色透明度 ≥ 0.85、不靠
+     字級懸殊製造層級，靠留白與位置區分。
+   - 不做裝飾：不放背景圖形、不在 kicker 兩側加短線、
+     不用半透明小字「彰顯氣質」。
+   ============================================ */
+body.has-cover .doc-head { display: none; }
+/* useCover 時用 CSS @page 規則控制每頁 margin：
+   - 第 1 頁（封面）margin = 0，撐滿 A4 物理尺寸 210mm × 297mm。
+   - 其餘頁（內頁）margin = 16/16/18/16mm，分頁時新頁頂部自動有上邊距，
+     不需在 main 上手動補 padding（否則只有第一個內頁的頂部會留白）。
+   puppeteer 的 page.pdf({ margin: ... }) 需在 useCover 時不傳 margin，
+   讓 Chromium 採用 CSS @page margin 而非覆蓋。 */
+@page { margin: 16mm 16mm 18mm 16mm; }
+@page :first { margin: 0; }
+.cover-page {
+  width: 210mm;
+  height: 297mm;
+  page-break-after: always;
+  break-after: page;
+}
+.cover {
+  width: 100%;
+  height: 100%;
+  /* 左右 18mm（而非 24mm）給三欄資訊更多寬度；底部三欄字級放大 2 倍後，
+     講師欄位約需 230px 才容得下「林鼎淵 Dean Lin」，邊距太大會撐爆。 */
+  padding: 26mm 18mm 22mm 18mm;
+  background: linear-gradient(160deg, var(--accent) 0%, var(--accent-deep) 100%);
+  color: #fff;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Kicker：◇ — 字 — ◇（菱形端點＋短線雙包夾）─────── */
+.cover-kicker {
+  display: flex; align-items: center; justify-content: center;
+  gap: 28px;
+  align-self: stretch;
+}
+.cover-kicker .kicker-text {
+  font-size: 26px; font-weight: 600;
+  letter-spacing: 10px;
+  color: rgba(255, 255, 255, 0.92);
+  padding-left: 10px;  /* 補正 letter-spacing 視覺左偏 */
+}
+.cover-kicker .kicker-line {
+  width: 96px; height: 1.5px;
+  background: rgba(255, 255, 255, 0.55);
+  flex: none;
+}
+.cover-kicker .kicker-diamond {
+  width: 12px; height: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  transform: rotate(45deg);
+  flex: none;
+}
+
+.cover-main {
+  flex: 1;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+/* 重置封面標題，避免套到全域 h2（內頁漸層橫條）樣式。
+   ⚠️ 特異度陷阱：`h1.cover-client`（0,1,1）會壓過 `.cover-client`（0,1,0）。
+   因此凡是 .cover-client 需要實設的屬性（background / padding / border-radius
+   等），都不可在此規則寫成 none / 0；只放真正全部封面標題共用、且為「重置」
+   性質的屬性。h1 本身無預設背景，不需要 background: none；h2 才需要。 */
+h1.cover-client, h2.cover-course { break-after: auto; }
+h2.cover-course { background: none; }
+/* ── 客戶名卡片：白色細邊框 + 透明背景 + 白字 ──
+   靠線條框界、不靠色塊反轉。中央光暈與陰影皆不加，維持「不靠對比裝飾」原則。 */
+.cover-client {
+  font-size: 64px; font-weight: 900;
+  line-height: 1.1; letter-spacing: 2px;
+  margin: 0 0 48px;
+  color: #fff;
+  background: none;
+  display: inline-block;
+  padding: 22px 48px;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  text-align: center;
+}
+.cover-client strong { background: none; color: #fff; }
+
+/* ── 中段分隔線：短線 — 菱形 — 短線 ─────────────── */
+.cover-line {
+  width: 160px; height: auto;
+  background: none;
+  margin: 0 auto 24px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px;
+}
+.cover-line .cover-line-seg {
+  flex: 1; height: 1px;
+  background: rgba(255, 255, 255, 0.7);
+}
+.cover-line .cover-line-diamond {
+  width: 6px; height: 6px;
+  background: #fff;
+  transform: rotate(45deg);
+  flex: none;
+}
+
+.cover-course {
+  font-size: 28px; font-weight: 700;
+  line-height: 1.55; letter-spacing: .5px;
+  color: #fff;
+  margin: 0 auto;
+  max-width: 600px;
+  text-align: center;
+}
+.cover-course strong { background: none; color: #fff; }
+.cover-tagline {
+  margin: 28px auto 0;
+  font-size: 23px; line-height: 1.85;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: .3px;
+  max-width: 760px;
+  text-align: center;
+}
+
+/* ── 底部三欄：圓 icon + 標籤 + 值（icon 與字級皆放大 2 倍）── */
+.cover-meta-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding-top: 36px;
+  margin-bottom: 4mm;
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+}
+.cover-meta-cell {
+  padding: 0; border: 0; background: none;
+  display: flex; flex-direction: column;
+  align-items: center; text-align: center;
+  gap: 14px;
+}
+.cover-meta-icon {
+  width: 88px; height: 88px;
+  border: 2px solid rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  margin-bottom: 4px;
+}
+.cover-meta-icon .cover-icon {
+  width: 44px; height: 44px;
+  display: block;
+}
+.cover-meta-label {
+  font-size: 26px; font-weight: 600; letter-spacing: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0;
+  padding-left: 4px;  /* 補正 letter-spacing 視覺左偏 */
+}
+.cover-meta-value {
+  font-size: 24px; font-weight: 700; letter-spacing: .3px;
+  color: #fff; line-height: 1.4;
+  background: none;
+  /* nowrap：避免短值（如「2 場 × 6 小時」「2026-05-24」）被三欄寬度自動斷字；
+     顯式 <br>（課程時數的「（共 X 小時）」、講師中英文姓名）仍會換行。 */
+  white-space: nowrap;
+  /* 固定容器為 2 行高度，內部垂直置中：單行 value（如日期）會落在中央，
+     與兩行 value（時數、講師）的視覺中線對齊，三欄上下平衡。 */
+  min-height: calc(24px * 1.4 * 2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.cover-meta-value strong { background: none; color: #fff; }
